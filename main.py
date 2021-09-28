@@ -2,10 +2,11 @@ import random
 
 import jwt
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer
+from util import OAuth2PasswordBearerWithCookie
 from passlib.context import CryptContext
 from sqlalchemy.orm.session import Session
 
@@ -14,7 +15,7 @@ import schemas
 from database import SessionLocal, engine
 
 models.Base.metadata.create_all(bind=engine)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl = "users/login")
+oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl = "users/login")
 JWT_SECRET = "AsecretKeyTobeSecret"
 app = FastAPI()
 origins = [
@@ -64,14 +65,13 @@ def create_user(user : schemas.User, db : Session = Depends(get_db)):
     return {"detail" : "User Created Successfully"}
 
 @app.post("/users/login")
-def user_login(uname : str, password : str,db : Session = Depends(get_db)):
-    print("It comes here")
+def user_login(response : Response, uname : str, password : str,db : Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.userName == uname).first()
     if db_user:
         if pwd_context.verify(password, db_user.password):
             token = jwt.encode({"userName" : db_user.userName, "email" : db_user.email}, JWT_SECRET)
-           
-            return db_user,{"access_token" : token, "token_type" : "bearer"}
+            response.set_cookie(key = "access_token", value = f"Bearer {token}")   
+            return db_user
         else:
             return {"Error":"Password Doesn't Match"}
     db.close()
