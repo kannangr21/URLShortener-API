@@ -68,9 +68,10 @@ def user_login(response : Response, uname : str, password : str,db : Session = D
     db_user = db.query(models.User).filter(models.User.userName == uname).first()
     if db_user:
         if pwd_context.verify(password, db_user.password):
+            user_urls = db.query(models.Urls).filter(models.Urls.userName == uname).all()
             token = jwt.encode({"userName" : db_user.userName, "email" : db_user.email}, JWT_SECRET)
             response.set_cookie(key = "access_token", value = f"Bearer {token}")   
-            return db_user
+            return db_user, user_urls
         else:
             return {"Error":"Password Doesn't Match"}
     db.close()
@@ -82,8 +83,8 @@ async def current_user(token : str = Depends(oauth2_scheme), db : Session = Depe
     return user
 
 @app.post("/users/update/")
-def user_update(user = Depends(current_user)):
-    return user
+def user_update(current_user : schemas.User = Depends(current_user)):
+    return current_user
 
 def to_base_62():
     deci = random.randint(1,10)
@@ -110,22 +111,33 @@ def add_URL(uname, longUrlin, sURL, db):
             "Short Code" : sURL}
   
 @app.post("/urls/addUrl")
-def url_create(uname : str, longUrlin : str, db : Session = Depends(get_db)):
-    while(True):
-        sURL = to_base_62()
-        db_sURL = db.query(models.Urls).filter(models.Urls.shortUrl == sURL).first()
-        if db_sURL:
-            continue
-        else:
-            return add_URL(uname, longUrlin, sURL, db)
+def url_create(longUrlin : str, db : Session = Depends(get_db), current_user : schemas.User = Depends(current_user)):
+    if current_user:
+        while(True):
+            sURL = to_base_62()
+            db_sURL = db.query(models.Urls).filter(models.Urls.shortUrl == sURL).first()
+            if db_sURL:
+                continue
+            else:
+                return add_URL(current_user.userName, longUrlin, sURL, db)
+    else:
+        return {"error" : "User not logged in"}
 
 @app.post("/urls/addUrl/customize")
-def url_create(uname : str, longUrlin : str, sURL : str, db : Session = Depends(get_db)):
-    db_sURL = db.query(models.Urls).filter(models.Urls.shortUrl == sURL).first()
-    if db_sURL:
-        return {"error" : "Short URL exists already"}
+def url_create(longUrlin : str, sURL : str, db : Session = Depends(get_db), current_user : schemas.User = Depends(current_user)):
+    if current_user:
+        db_sURL = db.query(models.Urls).filter(models.Urls.shortUrl == sURL).first()
+        if db_sURL:
+            return {"error" : "Short URL exists already"}
+        else:
+            return add_URL(current_user.userName, longUrlin, sURL, db)
     else:
-        return add_URL(uname, longUrlin, sURL, db)
+        return {"error" : "User not logged in"}
+
+@app.get("/users/logout")
+def user_logout(response: Response, current_user : schemas.User = Depends(current_user)):
+    response.delete_cookie("access_token")
+    return {"detail" : "Logged out successfully"}
 
 
 @app.get("/{shortURL}")
