@@ -5,7 +5,6 @@ import uvicorn
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
-from fastapi.security import OAuth2PasswordBearer
 from util import OAuth2PasswordBearerWithCookie
 from passlib.context import CryptContext
 from sqlalchemy.orm.session import Session
