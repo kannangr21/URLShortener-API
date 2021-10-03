@@ -71,7 +71,7 @@ def user_login(response : Response, uname : str, password : str,db : Session = D
             user_urls = db.query(models.Urls).filter(models.Urls.userName == uname).all()
             token = jwt.encode({"userName" : db_user.userName, "email" : db_user.email}, JWT_SECRET)
             response.set_cookie(key = "access_token", value = f"Bearer {token}")   
-            return db_user, user_urls
+            return user_urls
         else:
             return {"Error":"Password Doesn't Match"}
     db.close()
@@ -82,7 +82,11 @@ async def current_user(token : str = Depends(oauth2_scheme), db : Session = Depe
     user = db.query(models.User).filter(models.User.userName == payload.get('userName')).first()
     return user
 
-@app.post("/users/update/")
+@app.post("/users/profile")
+def user_update(current_user : schemas.User = Depends(current_user)):
+    return current_user
+
+@app.post("/users/profile/update")
 def user_update(current_user : schemas.User = Depends(current_user)):
     return current_user
 
