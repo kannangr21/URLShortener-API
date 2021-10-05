@@ -41,10 +41,12 @@ def get_db():
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+#homepage
 @app.get("/")
 def main():
     return {"detail":"Server is running"}
 
+#create user
 @app.post("/users/create")
 def create_user(user : schemas.User, db : Session = Depends(get_db)):
     db_user = db.query(models.User).filter(models.User.userName == user.userName).first()
