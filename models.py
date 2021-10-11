@@ -1,7 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.sql.schema import ForeignKey
-from sqlalchemy.sql.sqltypes import Time
-from sqlalchemy.types import Date
+from sqlalchemy.types import Text, Date, Time
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -19,15 +18,14 @@ class User(Base):
 
 class Urls(Base):
     __tablename__ = "UserURLs"
+    
     id = Column(Integer, primary_key=True)
     userName = Column(String, ForeignKey('UserDetails.userName'))
     longUrl = Column(String)
     shortUrl = Column(String, unique=True)
-    #count = Column(Integer)
-    #date_created = Column(String)
-    #time_created = Column(Time)
-    ''' Database to be modified
-    Test : Old database to be deleted and check for a new one!
-    Id not a field in old db'''
-
+    count = Column(Integer)
+    base64str = Column(Text)
+    date_created = Column(Date)
+    time_created = Column(Time)
+    
     users = relationship("User", back_populates="urls")

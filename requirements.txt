@@ -6,9 +6,15 @@ fastapi==0.68.1
 greenlet==1.1.1
 h11==0.12.0
 passlib==1.7.4
+Pillow==8.3.2
 pycparser==2.20
 pydantic==1.8.2
 PyJWT==2.1.0
+pypng==0.0.21
+PyQRCode==1.2.1
+python-dateutil==2.8.2
+python-decouple==3.5
+qrcode==7.3
 six==1.16.0
 SQLAlchemy==1.4.23
 starlette==0.14.2
