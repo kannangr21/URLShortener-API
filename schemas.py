@@ -1,4 +1,3 @@
-from datetime import date, time
 from pydantic import BaseModel
 
 class User(BaseModel):
@@ -13,6 +12,3 @@ class Urls(BaseModel):
     userName : str
     longUrl : str
     shortUrl : str
-    #count : int
-    #date_created : date
-    #time_created : time
